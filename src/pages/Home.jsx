@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import ListingCard from '../components/ListingCard';
+import DebugInfo from '../components/DebugInfo';
 import { Link } from 'react-router-dom';
 import { API_ENDPOINTS } from '../config/api';
 
@@ -16,7 +17,9 @@ export default function Home() {
     const fetchListings = async () => {
       try {
         setError(null);
+        console.log('Fetching from:', API_ENDPOINTS.GET_LISTINGS);
         const res = await axios.get(API_ENDPOINTS.GET_LISTINGS);
+        console.log('Response:', res.data);
         // Ensure we have valid data
         const validListings = res.data.filter(listing => 
           listing && listing.hotelName && listing.city && listing.country
@@ -24,7 +27,13 @@ export default function Home() {
         setListings(validListings);
       } catch (err) {
         console.error('Error fetching listings:', err);
-        setError('Failed to load hotels. Please try again later.');
+        console.error('Error details:', {
+          message: err.message,
+          status: err.response?.status,
+          data: err.response?.data,
+          url: err.config?.url
+        });
+        setError(`Failed to load hotels: ${err.message}`);
         setListings([]);
       } finally {
         setLoading(false);
@@ -163,24 +172,27 @@ export default function Home() {
 
   if (error) {
     return (
-      <div style={{ textAlign: 'center', padding: '4rem' }}>
-        <div style={{ fontSize: '1.5rem', color: '#DC2626', marginBottom: '1rem' }}>⚠️</div>
-        <div style={{ fontSize: '1.25rem', color: '#DC2626', marginBottom: '0.5rem' }}>Error Loading Hotels</div>
-        <div style={{ color: '#6B7280', marginBottom: '2rem' }}>{error}</div>
-        <button 
-          onClick={() => window.location.reload()} 
-          style={{
-            padding: '0.75rem 1.5rem',
-            backgroundColor: '#2563EB',
-            color: '#FFFFFF',
-            border: 'none',
-            borderRadius: '0.5rem',
-            fontSize: '1rem',
-            cursor: 'pointer'
-          }}
-        >
-          Try Again
-        </button>
+      <div>
+        <div style={{ textAlign: 'center', padding: '4rem' }}>
+          <div style={{ fontSize: '1.5rem', color: '#DC2626', marginBottom: '1rem' }}>⚠️</div>
+          <div style={{ fontSize: '1.25rem', color: '#DC2626', marginBottom: '0.5rem' }}>Error Loading Hotels</div>
+          <div style={{ color: '#6B7280', marginBottom: '2rem' }}>{error}</div>
+          <button 
+            onClick={() => window.location.reload()} 
+            style={{
+              padding: '0.75rem 1.5rem',
+              backgroundColor: '#2563EB',
+              color: '#FFFFFF',
+              border: 'none',
+              borderRadius: '0.5rem',
+              fontSize: '1rem',
+              cursor: 'pointer'
+            }}
+          >
+            Try Again
+          </button>
+        </div>
+        <DebugInfo />
       </div>
     );
   }
